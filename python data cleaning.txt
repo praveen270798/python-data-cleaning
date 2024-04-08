@@ -1,0 +1,238 @@
+import pandas as pd
+import numpy as np
+import seaborn as sns
+import matplotlib.pyplot as plt
+
+
+df=pd.read_excel(r"D:\data analytics\flight_price.xlsx")
+
+df
+
+
+df.columns
+Index(['Airline', 'Date_of_Journey', 'Source', 'Destination', 'Route',
+       'Dep_Time', 'Arrival_Time', 'Duration', 'Total_Stops',
+       'Additional_Info', 'Price'],
+      dtype='object')
+
+# spliting date of journey
+
+df['journey_date']=df['Date_of_Journey'].str.split('/').str[0]
+df['journey_month']=df['Date_of_Journey'].str.split('/').str[1]
+df['journey_year']=df['Date_of_Journey'].str.split('/').str[2]
+
+df.drop('Route',axis=1,inplace=True)
+
+df
+
+
+df.drop('Date_of_Journey',axis=1,inplace=True)
+
+df
+
+
+df.dtypes
+Airline            object
+Source             object
+Destination        object
+Dep_Time           object
+Arrival_Time       object
+Duration           object
+Total_Stops        object
+Additional_Info    object
+Price               int64
+journey_date       object
+journey_month      object
+journey_year       object
+dtype: object
+
+df['journey_date']=df['journey_date'].astype(int)
+df['journey_month']=df['journey_month'].astype(int)
+df['journey_year']=df['journey_year'].astype(int)
+
+df.dtypes
+Airline            object
+Source             object
+Destination        object
+Dep_Time           object
+Arrival_Time       object
+Duration           object
+Total_Stops        object
+Additional_Info    object
+Price               int64
+journey_date        int32
+journey_month       int32
+journey_year        int32
+dtype: object
+
+# spliting date of dep_time
+
+df['dep_hours']=df['Dep_Time'].str.split(':').str[0]
+df['dep_minutes']=df['Dep_Time'].str.split(':').str[1]
+
+df.drop('Dep_Time',axis=1,inplace=True)
+
+df['dep_hours']=df['dep_hours'].astype(int)
+df['dep_minutes']=df['dep_minutes'].astype(int)
+
+df.dtypes
+Airline            object
+Source             object
+Destination        object
+Arrival_Time       object
+Duration           object
+Total_Stops        object
+Additional_Info    object
+Price               int64
+journey_date        int32
+journey_month       int32
+journey_year        int32
+dep_hours           int32
+dep_minutes         int32
+dtype: object
+
+# spliting date of arrival_time
+
+df['Arrival_Time']=df['Arrival_Time'].str.split(' ').str[0]
+
+df
+
+
+df['Arrival_hours']=df['Arrival_Time'].str.split(':').str[0]
+df['Arrival_minutes']=df['Arrival_Time'].str.split(':').str[1]
+
+df
+
+
+df.drop('Arrival_Time',axis=1,inplace=True)
+
+df
+
+
+df['Arrival_hours']=df['Arrival_hours'].astype(int)
+df['Arrival_minutes']=df['Arrival_minutes'].astype(int)
+
+df.dtypes
+Airline            object
+Source             object
+Destination        object
+Duration           object
+Total_Stops        object
+Additional_Info    object
+Price               int64
+journey_date        int32
+journey_month       int32
+journey_year        int32
+dep_hours           int32
+dep_minutes         int32
+Arrival_hours       int32
+Arrival_minutes     int32
+dtype: object
+
+# spliting date of duration
+
+df.drop(6474,inplace=True)
+
+df['duration_hours']=df['Duration'].str.split(' ').str[0].str.split('h').str[0]
+df['duration_minutes']=df['Duration'].str.split(' ').str[1].str.split('m').str[0]
+
+df['duration_minutes'].fillna(0,inplace=True)
+
+df['duration_hours']=df['duration_hours'].astype(int)
+df['duration_minutes']=df['duration_minutes'].astype(int)
+
+df.drop('Duration',axis=1,inplace=True)
+
+# cleaning null values using map in total_stops
+
+df['Total_Stops'].unique()
+array(['non-stop', '2 stops', '1 stop', '3 stops', nan, '4 stops'],
+      dtype=object)
+
+df['Total_Stops'].nunique()
+5
+
+mode=df['Total_Stops'].mode()
+
+mode
+0    1 stop
+Name: Total_Stops, dtype: object
+
+df['Total_Stops']=df['Total_Stops'].map({'non-stop' : 0 ,'1 stop' : 1 , '2 stops' : 2 , '3 stops' : 3 ,'4 stops' :4 , np.nan : 1})
+
+df['Total_Stops'].isnull().sum()
+0
+
+df.head()
+
+
+df["dep_hours"]=df['dep_hours']*60
+
+df["dep_minutes"]=df["dep_minutes"]+df["dep_hours"]
+
+df.drop('dep_hours',axis=1,inplace=True)
+
+df
+
+
+df["Arrival_hours"]=df['Arrival_hours']*60
+
+df["Arrival_minutes"]=df['Arrival_minutes']+df["Arrival_hours"]
+
+df.drop("Arrival_hours",axis=1,inplace=True)
+
+df
+
+
+df["duration_hours"]=df['duration_hours']*60
+
+df["duration_minutes"]=df['duration_minutes']+df["duration_hours"]
+
+df
+
+
+df.drop("duration_hours",axis=1,inplace=True)
+
+df
+
+
+from sklearn.preprocessing import OrdinalEncoder
+
+df['Airline'].unique()
+array(['IndiGo', 'Air India', 'Jet Airways', 'SpiceJet',
+       'Multiple carriers', 'GoAir', 'Vistara', 'Air Asia',
+       'Vistara Premium economy', 'Jet Airways Business',
+       'Multiple carriers Premium economy', 'Trujet'], dtype=object)
+
+oe = OrdinalEncoder(categories=[['IndiGo', 'Air India', 'Jet Airways', 'SpiceJet',
+       'Multiple carriers', 'GoAir', 'Vistara', 'Air Asia',
+       'Vistara Premium economy', 'Jet Airways Business',
+       'Multiple carriers Premium economy', 'Trujet']])
+df['Airline'] = oe.fit_transform(df[['Airline']]).astype(int)
+
+df['Airline'].unique()
+array([ 0,  1,  2,  3,  4,  5,  6,  7,  8,  9, 10, 11])
+
+df['Source'].unique()
+array(['Banglore', 'Kolkata', 'Delhi', 'Chennai', 'Mumbai'], dtype=object)
+
+oe1 = OrdinalEncoder(categories=[['Banglore', 'Kolkata', 'Delhi', 'Chennai', 'Mumbai']])
+df['Source'] = oe1.fit_transform(df[['Source']]).astype(int)
+
+df['Source'].unique()
+array([0, 1, 2, 3, 4])
+
+df['Destination'].unique()
+array(['New Delhi', 'Banglore', 'Cochin', 'Kolkata', 'Delhi', 'Hyderabad'],
+      dtype=object)
+
+oe2 = OrdinalEncoder(categories=[['New Delhi', 'Banglore', 'Cochin', 'Kolkata', 'Delhi', 'Hyderabad']])
+df['Destination'] = oe2.fit_transform(df[['Destination']]).astype(int)
+
+df['Destination'].unique()
+array([0, 1, 2, 3, 4, 5])
+
+df.drop("Additional_Info",axis=1,inplace=True)
+
+df
+
